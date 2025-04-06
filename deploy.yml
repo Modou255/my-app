@@ -1,0 +1,54 @@
+---
+- name: Déploiement d'une application web
+  hosts: webservers
+  become: yes
+  tasks:
+    - name: Mettre à jour les paquets
+      apt:
+        update_cache: yes
+        upgrade: yes
+
+    - name: Installer les dépendances nécessaires
+      apt:
+        name:
+          - python3-pip
+          - git
+        state: present
+
+    - name: Cloner le dépôt de l'application
+      git:
+        repo: 'https://github.com/Modou255/my-app.git'
+        dest: '/var/www/my-app'
+        version: 'main'
+
+    - name: Installer les dépendances de l'application
+      pip:
+        requirements: '/var/www/my-app/requirements.txt'
+
+    - name: Lancer l'application
+      command: python3 /var/www/my-app/app.py
+
+- name: Déploiement de la base de données
+  hosts: dbservers
+  become: yes
+  tasks:
+    - name: Mettre à jour les paquets
+      apt:
+        update_cache: yes
+        upgrade: yes
+
+    - name: Installer MySQL
+      apt:
+        name: mysql-server
+        state: present
+
+    - name: Démarrer le service MySQL
+      service:
+        name: mysql
+        state: started
+        enabled: yes
+
+    - name: Créer une base de données
+      mysql_db:
+        name: myappdb
+        state: present
